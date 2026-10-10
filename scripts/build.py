@@ -25,12 +25,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCES = ROOT / "sources.json"
+SOURCES = ROOT / "docs" / "sources.json"
 OUT = ROOT / "docs" / "data" / "news.json"
 # UA máy tính: một số báo (VnExpress, Báo Mới) trả nội dung khác/rỗng cho UA di động.
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
 SUMMARY_MAX_CHARS = 320
-CLAUDE_MODEL = os.environ.get("HNEW_MODEL", "claude-opus-5-5")
+CLAUDE_MODEL = os.environ.get("HNEWS_MODEL", "claude-opus-5-5")
 
 NS = {
     "atom": "http://www.w3.org/2005/Atom",
@@ -237,9 +237,9 @@ PARSERS = {"rss": parse_feed, "baomoi": parse_baomoi}
 
 def load_previous() -> dict[str, dict]:
     """Bản news.json lần trước (để không phải tóm tắt/giải link lại). Trên GitHub Actions
-    lấy từ trang đã triển khai qua HNEW_PREVIOUS_URL, còn chạy máy thì đọc file local."""
+    lấy từ trang đã triển khai qua HNEWS_PREVIOUS_URL, còn chạy máy thì đọc file local."""
     try:
-        url = os.environ.get("HNEW_PREVIOUS_URL")
+        url = os.environ.get("HNEWS_PREVIOUS_URL")
         raw = fetch(url) if url else OUT.read_bytes()
         return {i["id"]: i for i in json.loads(raw)["items"]}
     except (OSError, ValueError, KeyError):

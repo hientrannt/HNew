@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<clipPath id="r"><rect width="1024" height="1024" rx="224"/></clipPath>
+<g clip-path="url(#r)">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E0453A"/><stop offset=".55" stop-color="#B3261E"/><stop offset="1" stop-color="#7A1410"/>
+    </linearGradient>
+    <radialGradient id="gl" cx=".3" cy=".2" r=".8">
+      <stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#gl)"/>
+<g transform="translate(512 512) scale(1.3) translate(-512 -512)">
+  <defs>
+    <linearGradient id="pl" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#F4EFE6"/>
+    </linearGradient>
+    <linearGradient id="pr" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#E4DCCD"/><stop offset=".18" stop-color="#F3EDE3"/><stop offset="1" stop-color="#FBF8F2"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#3a0606" flood-opacity=".35"/>
+    </filter>
+  </defs>
+  <!-- tờ báo gập đôi (hai nửa như màn hình Fold) -->
+  <g filter="url(#sh)">
+    <path d="M300 318 Q300 300 318 300 L512 312 L512 724 L318 712 Q300 712 300 694 Z" fill="url(#pl)"/>
+    <path d="M512 312 L706 300 Q724 300 724 318 L724 694 Q724 712 706 712 L512 724 Z" fill="url(#pr)"/>
+  </g>
+  <!-- chữ H có chân (serif) -->
+  <g fill="#B3261E">
+    <rect x="368" y="392" width="56" height="236" rx="4"/>
+    <rect x="600" y="392" width="56" height="236" rx="4"/>
+    <rect x="420" y="486" width="184" height="44"/>
+    <rect x="346" y="384" width="100" height="22" rx="4"/>
+    <rect x="578" y="384" width="100" height="22" rx="4"/>
+    <rect x="346" y="614" width="100" height="22" rx="4"/>
+    <rect x="578" y="614" width="100" height="22" rx="4"/>
+  </g>
+  <!-- dòng chữ báo -->
+  <g fill="#B3261E" opacity=".28">
+    <rect x="346" y="660" width="140" height="12" rx="6"/>
+    <rect x="538" y="660" width="140" height="12" rx="6"/>
+  </g>
+  <rect x="346" y="340" width="332" height="14" rx="7" fill="#1B1B1B" opacity=".85"/>
+</g></g></svg>

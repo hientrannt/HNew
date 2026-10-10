@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#B3261E</color>
+    <color name="colorPrimaryDark">#7A1410</color>
+    <color name="colorAccent">#B3261E</color>
+    <color name="hnews_red">#B3261E</color>
+</resources>

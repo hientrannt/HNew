@@ -34,7 +34,7 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Lấy tin và tóm tắt
         env:
-          HNEW_PREVIOUS_URL: ${{ steps.pages.outputs.base_url }}/data/news.json
+          HNEWS_PREVIOUS_URL: ${{ steps.pages.outputs.base_url }}/data/news.json
         run: python scripts/build.py
       - uses: actions/upload-pages-artifact@v3
         with:

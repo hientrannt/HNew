@@ -1,4 +1,4 @@
-# HNew – Trang điểm tin cá nhân
+# HNews – Trang điểm tin cá nhân
 
 Gom tin từ các báo bạn hay đọc vào một trang, mỗi tin có tiêu đề, tóm tắt ngắn, ảnh và giờ đăng.
 Bấm vào tin sẽ mở bài gốc trên trang báo. Giao diện tối ưu cho Galaxy Z Fold:
@@ -39,7 +39,7 @@ Sửa `sources.json`:
 - Mặc định dùng phần **sapo** (đoạn mô tả) mà báo đưa vào RSS, đã làm sạch và cắt gọn khoảng 300 ký tự.
 - **Tuỳ chọn, tóm tắt bằng AI:** thêm secret `ANTHROPIC_API_KEY` (Settings → Secrets and variables → Actions).
   Khi đó Claude viết lại mỗi tin thành 1–2 câu nêu ý chính. Tin đã tóm tắt được lưu lại nên mỗi tin chỉ tóm tắt một lần.
-  Đổi model bằng biến môi trường `HNEW_MODEL`.
+  Đổi model bằng biến môi trường `HNEWS_MODEL`.
 
 ## Triển khai lên GitHub Pages (miễn phí, tự cập nhật mỗi 30 phút)
 

@@ -1,0 +1,23 @@
+{
+  "appId": "io.github.hientrannt.hnews",
+  "appName": "HNews",
+  "webDir": "docs",
+  "android": {
+    "backgroundColor": "#F6F4EF"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "SplashScreen": {
+      "launchShowDuration": 600,
+      "launchAutoHide": true,
+      "backgroundColor": "#B3261E",
+      "showSpinner": false
+    },
+    "SystemBars": {
+      "insetsHandling": "css",
+      "initialViewportFitValueHint": "cover"
+    }
+  }
+}

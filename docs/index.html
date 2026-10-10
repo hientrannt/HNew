@@ -3,32 +3,107 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>HNew – Điểm tin</title>
+<title>HNews – Điểm tin</title>
 <meta name="description" content="Trang tổng hợp điểm tin từ các báo bạn theo dõi">
 <meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="style.css">
+<script>
+  // Áp giao diện/cỡ chữ trước khi vẽ để không bị nháy màu khi mở app.
+  try {
+    var t = JSON.parse(localStorage.getItem("hnews:theme") || '"auto"');
+    if (t !== "auto") document.documentElement.dataset.theme = t;
+    document.documentElement.dataset.size = JSON.parse(localStorage.getItem("hnews:size") || '"m"');
+  } catch (e) {}
+</script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+  <symbol id="i-unread" viewBox="0 0 24 24"><path d="M4 7h11M4 12h11M4 17h7"/><circle cx="19" cy="7" r="2.2" class="fill"/></symbol>
+  <symbol id="i-cards" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="14" width="16" height="6" rx="2"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M4 6h10M4 10h7M4 15h10M4 19h7"/><rect x="16" y="4.5" width="4.5" height="6" rx="1.2"/><rect x="16" y="13.5" width="4.5" height="6" rx="1.2"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4.5v4h-4"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+</svg>
+
 <header class="top">
   <div class="bar">
-    <h1>HNew <small id="updated"></small></h1>
+    <div class="brand">
+      <img src="icon.svg" alt="" width="30" height="30">
+      <div>
+        <h1>HNews</h1>
+        <p id="dateline"></p>
+      </div>
+    </div>
     <div class="actions">
-      <button id="btn-search" aria-label="Tìm kiếm" title="Tìm kiếm">⌕</button>
-      <button id="btn-density" aria-label="Đổi kiểu hiển thị" title="Gọn / Thẻ ảnh">☰</button>
-      <button id="btn-unread" aria-label="Chỉ tin chưa đọc" title="Chỉ tin chưa đọc">◐</button>
-      <button id="btn-refresh" aria-label="Tải lại" title="Tải lại">↻</button>
+      <button class="icon" id="btn-search" aria-label="Tìm kiếm"><svg><use href="#i-search"/></svg></button>
+      <button class="icon" id="btn-unread" aria-label="Chỉ tin chưa đọc" aria-pressed="false"><svg><use href="#i-unread"/></svg></button>
+      <button class="icon" id="btn-density" aria-label="Đổi kiểu hiển thị"><svg><use href="#i-list"/></svg></button>
+      <button class="icon" id="btn-refresh" aria-label="Cập nhật tin"><svg><use href="#i-refresh"/></svg></button>
+      <button class="icon" id="btn-settings" aria-label="Cài đặt"><svg><use href="#i-settings"/></svg></button>
     </div>
   </div>
-  <input id="search" type="search" placeholder="Tìm trong tiêu đề, tóm tắt…" hidden>
+  <div class="searchbox" id="searchbox" hidden>
+    <svg><use href="#i-search"/></svg>
+    <input id="search" type="search" placeholder="Tìm tin (không cần gõ dấu)…" autocomplete="off" enterkeyhint="search">
+  </div>
   <nav class="chips" id="sources" aria-label="Nguồn báo"></nav>
   <nav class="chips sub" id="categories" aria-label="Chuyên mục"></nav>
+  <div class="progress" id="progress" hidden><span></span></div>
 </header>
 
-<main id="list" aria-live="polite"><p class="empty">Đang tải tin…</p></main>
+<div class="ptr" id="ptr" aria-hidden="true"><svg><use href="#i-refresh"/></svg></div>
+
+<main id="list" aria-live="polite"></main>
+
+<p class="footer" id="footer"></p>
+
+<button class="newpill" id="newpill" hidden><svg><use href="#i-up"/></svg><span></span></button>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<dialog class="sheet" id="settings" aria-labelledby="settings-title">
+  <div class="sheet-head">
+    <h2 id="settings-title">Cài đặt</h2>
+    <button class="icon" data-close aria-label="Đóng"><svg><use href="#i-close"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <section>
+      <h3>Giao diện</h3>
+      <div class="row"><span>Chủ đề</span>
+        <div class="seg" data-pref="theme">
+          <button value="auto">Tự động</button><button value="light">Sáng</button><button value="dark">Tối</button>
+        </div>
+      </div>
+      <div class="row"><span>Cỡ chữ</span>
+        <div class="seg" data-pref="size">
+          <button value="s">Nhỏ</button><button value="m">Vừa</button><button value="l">Lớn</button>
+        </div>
+      </div>
+      <div class="row"><span>Kiểu hiển thị</span>
+        <div class="seg" data-pref="compact">
+          <button value="true">Danh sách</button><button value="false">Thẻ ảnh</button>
+        </div>
+      </div>
+    </section>
+    <section>
+      <h3>Nguồn tin</h3>
+      <p class="hint">Bật/tắt từng chuyên mục. Số trong ngoặc là số tin lấy được lần gần nhất.</p>
+      <div id="source-list"></div>
+    </section>
+    <section>
+      <h3>Dữ liệu</h3>
+      <button class="wide" id="btn-markall">Đánh dấu tất cả là đã đọc</button>
+      <button class="wide" id="btn-clearread">Xoá lịch sử đã đọc</button>
+    </section>
+    <p class="about" id="about"></p>
+  </div>
+</dialog>
 
 <template id="tpl-item">
   <article class="item">
@@ -43,6 +118,8 @@
   </article>
 </template>
 
+<script src="vendor/capacitor.js"></script>
+<script src="js/feeds.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

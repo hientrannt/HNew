@@ -1,6 +1,7 @@
 // Cache giao diện để mở nhanh/offline; dữ liệu tin luôn lấy mới nhất khi có mạng.
-const CACHE = "hnew-v1";
-const SHELL = ["./", "index.html", "style.css", "app.js", "icon.svg", "manifest.webmanifest"];
+const CACHE = "hnews-v2";
+const SHELL = ["./", "index.html", "style.css", "app.js", "js/feeds.js", "vendor/capacitor.js", "sources.json",
+  "icon.svg", "icon-192.png", "manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
