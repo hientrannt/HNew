@@ -1,0 +1,51 @@
+name: Cập nhật tin & triển khai
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # mỗi 30 phút
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["sources.json", "scripts/**", "docs/**", ".github/workflows/**"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cài gói anthropic (chỉ khi có API key)
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: pip install anthropic
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Lấy tin và tóm tắt
+        env:
+          HNEW_PREVIOUS_URL: ${{ steps.pages.outputs.base_url }}/data/news.json
+        run: python scripts/build.py
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

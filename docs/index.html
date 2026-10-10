@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HNew – Điểm tin</title>
+<meta name="description" content="Trang tổng hợp điểm tin từ các báo bạn theo dõi">
+<meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="bar">
+    <h1>HNew <small id="updated"></small></h1>
+    <div class="actions">
+      <button id="btn-search" aria-label="Tìm kiếm" title="Tìm kiếm">⌕</button>
+      <button id="btn-density" aria-label="Đổi kiểu hiển thị" title="Gọn / Thẻ ảnh">☰</button>
+      <button id="btn-unread" aria-label="Chỉ tin chưa đọc" title="Chỉ tin chưa đọc">◐</button>
+      <button id="btn-refresh" aria-label="Tải lại" title="Tải lại">↻</button>
+    </div>
+  </div>
+  <input id="search" type="search" placeholder="Tìm trong tiêu đề, tóm tắt…" hidden>
+  <nav class="chips" id="sources" aria-label="Nguồn báo"></nav>
+  <nav class="chips sub" id="categories" aria-label="Chuyên mục"></nav>
+</header>
+
+<main id="list" aria-live="polite"><p class="empty">Đang tải tin…</p></main>
+
+<template id="tpl-item">
+  <article class="item">
+    <a class="link" target="_blank" rel="noopener">
+      <img class="thumb" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="">
+      <div class="body">
+        <div class="meta"><span class="src"></span><span class="cat"></span><time></time></div>
+        <h2 class="title"></h2>
+        <p class="summary"></p>
+      </div>
+    </a>
+  </article>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
