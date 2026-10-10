@@ -92,8 +92,11 @@ cd docs && python3 -m http.server 8000
 ## Cấu trúc
 
 ```
-sources.json                  danh sách nguồn báo
+docs/sources.json             danh sách nguồn báo
 scripts/build.py              lấy RSS / Báo Mới, làm sạch, tóm tắt -> docs/data/news.json
-docs/                         trang web tĩnh (index.html, style.css, app.js, PWA)
+docs/                         giao diện dùng chung cho web và app (index.html, style.css, app.js, js/feeds.js)
+android/                      dự án Android (Capacitor)
+branding/, assets/            logo gốc (SVG) và ảnh icon/màn hình chờ
+dist/                         file APK để cài
 .github/workflows/            cập nhật tự động + triển khai GitHub Pages
 ```
