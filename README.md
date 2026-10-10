@@ -8,6 +8,7 @@ Bấm vào tin sẽ mở bài gốc trên trang báo. Giao diện tối ưu cho 
 - Chế độ **Gọn** (☰, mặc định): danh sách dày, ảnh nhỏ bên phải, nhiều tin nhất trên một màn hình. Tắt đi để xem dạng thẻ ảnh lớn.
 - Lọc theo **báo** và **chuyên mục** (số bên cạnh là số tin chưa đọc), **tìm kiếm** không cần gõ dấu (⌕).
 - Tin đã bấm sẽ mờ đi; nút ◐ để chỉ hiện tin chưa đọc.
+- **Đọc liền mạch khi gập/mở máy**: đang đọc ở màn hình ngoài mà mở máy ra (hoặc gập lại), trang không tải lại mà giữ đúng tin đang đọc ở đầu màn hình, chỉ đổi số cột. Thoát app rồi mở lại (trong 12 giờ) cũng quay về đúng chỗ đang đọc dở, bộ lọc được giữ nguyên.
 - Tự theo chế độ sáng/tối của máy. Có thể "Thêm vào màn hình chính" để mở như một app (PWA).
 
 ## Nguồn tin hiện có

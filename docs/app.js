@@ -114,7 +114,7 @@ $("#list").addEventListener("click", (e) => {
   a.closest(".item").classList.add("read");
 });
 
-$("#btn-density").onclick = () => { state.compact = !state.compact; store.set("compact", state.compact); render(); };
+$("#btn-density").onclick = () => { captureAnchor(); state.compact = !state.compact; store.set("compact", state.compact); render(); restoreAnchor(); };
 $("#btn-unread").onclick = () => { state.unreadOnly = !state.unreadOnly; store.set("unreadOnly", state.unreadOnly); render(); };
 $("#btn-refresh").onclick = () => load(true);
 $("#btn-search").onclick = () => {
@@ -123,18 +123,59 @@ $("#btn-search").onclick = () => {
 };
 $("#search").addEventListener("input", (e) => { state.query = e.target.value; render(); });
 
+// ---- Giữ vị trí đang đọc khi gập/mở màn hình Fold (đổi số cột) hoặc khi tải lại tin ----
+// Lưu id của tin đang ở đầu màn hình + độ lệch; sau khi bố cục đổi thì cuộn lại đúng tin đó.
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+let anchor = store.get("anchor", null);
+function headerH() { return $(".top").getBoundingClientRect().bottom; }
+function captureAnchor() {
+  const top = headerH();
+  for (const a of document.querySelectorAll("#list a[data-id]")) {
+    const r = a.getBoundingClientRect();
+    if (r.bottom > top + 4) {
+      anchor = { id: a.dataset.id, offset: r.top - top, at: Date.now() };
+      store.set("anchor", anchor);
+      return;
+    }
+  }
+}
+function restoreAnchor() {
+  if (!anchor) return;
+  const a = document.querySelector(`#list a[data-id="${anchor.id}"]`);
+  if (!a) return;
+  scrollBy(0, a.getBoundingClientRect().top - headerH() - anchor.offset);
+}
+let scrollTimer;
+addEventListener("scroll", () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(captureAnchor, 120); }, { passive: true });
+// Khi mở/gập máy, chiều rộng đổi -> lưới đổi số cột -> cuộn lại về tin đang đọc.
+let lastWidth = innerWidth;
+new ResizeObserver(() => {
+  if (innerWidth === lastWidth) return;
+  lastWidth = innerWidth;
+  restoreAnchor();
+  requestAnimationFrame(restoreAnchor); // lần nữa sau khi ảnh/phông chữ ổn định
+}).observe(document.documentElement);
+addEventListener("pagehide", captureAnchor);
+
+let generated = null;
 async function load(force) {
   const btn = $("#btn-refresh"); btn.disabled = true;
   try {
     const r = await fetch("data/news.json" + (force ? "?t=" + Date.now() : ""), { cache: force ? "reload" : "no-cache" });
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
-    state.items = data.items || [];
     $("#updated").textContent = "cập nhật " + ago(data.generated);
+    if (data.generated === generated) return; // không có tin mới, giữ nguyên màn hình
+    const firstLoad = generated === null;
+    generated = data.generated;
+    if (!firstLoad) captureAnchor();
+    state.items = data.items || [];
     // Bỏ lọc đã lưu nếu nguồn/chuyên mục không còn tồn tại.
     if (state.source && !state.items.some((i) => i.source === state.source)) state.source = "";
     if (state.category && !state.items.some((i) => i.category === state.category)) state.category = "";
     render();
+    // Mở lại app (kể cả khi hệ điều hành đã đóng nền) vẫn quay về tin đang đọc dở trong 12 giờ.
+    if (!firstLoad || (anchor && Date.now() - anchor.at < 12 * 3600e3)) restoreAnchor();
   } catch (e) {
     if (!state.items.length) $("#list").innerHTML = '<p class="empty">Không tải được tin. Kiểm tra kết nối rồi bấm ↻.</p>';
   } finally {
