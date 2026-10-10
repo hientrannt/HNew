@@ -56,8 +56,11 @@ const norm = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "
 const cap1 = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function updateDateline() {
-  const today = cap1(new Date().toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "numeric", year: "numeric" }));
-  $("#dateline").textContent = state.meta?.generated ? `${today} · cập nhật ${ago(state.meta.generated)}` : today;
+  const narrow = innerWidth < 500; // màn hình ngoài của Fold: dòng ngày ngắn gọn
+  const today = cap1(new Date().toLocaleDateString("vi-VN", narrow
+    ? { weekday: "long", day: "numeric", month: "numeric" }
+    : { weekday: "long", day: "numeric", month: "numeric", year: "numeric" }));
+  $("#dateline").textContent = state.meta?.generated && !narrow ? `${today} · cập nhật ${ago(state.meta.generated)}` : today;
 }
 
 let toastTimer;
@@ -216,6 +219,7 @@ let lastWidth = innerWidth;
 new ResizeObserver(() => {
   if (innerWidth === lastWidth) return;
   lastWidth = innerWidth;
+  updateDateline();
   restoreAnchor();
   requestAnimationFrame(restoreAnchor);
 }).observe(document.documentElement);
