@@ -13,7 +13,7 @@ Bấm vào tin sẽ mở bài gốc trên trang báo. Giao diện tối ưu cho 
 
 ## Ứng dụng Android (APK)
 
-**Tải về:** [`dist/HNews-1.1.0.apk`](dist/HNews-1.1.0.apk). Trên GitHub, mở file rồi bấm **Download/View raw**.
+**Tải về:** [`dist/HNews-1.2.0.apk`](dist/HNews-1.2.0.apk). Trên GitHub, mở file rồi bấm **Download/View raw**.
 
 Cài đặt trên Galaxy Fold:
 1. Mở file APK vừa tải. Nếu Android hỏi, bật **Cho phép cài đặt từ nguồn này** cho trình duyệt hoặc ứng dụng Tệp.
@@ -26,6 +26,12 @@ Khác với bản web, app lấy tin **trực tiếp từ các báo ngay trên �
 - Tin Báo Mới mở thẳng bài gốc của tờ báo đăng tin.
 - Nút **Back** của Android chỉ thu nhỏ app, không thoát. Gập/mở máy, app không tải lại.
 - **Cài đặt** (biểu tượng thanh trượt): chủ đề sáng/tối, cỡ chữ, kiểu hiển thị, bật/tắt từng nguồn và chuyên mục.
+- **Thêm nguồn báo**: bấm nút **＋ Thêm** ở cuối hàng tên báo, hoặc **Cài đặt → Thêm nguồn báo**.
+  Nhập địa chỉ trang báo (vd. `tuoitre.vn`) hoặc dán link RSS / link chuyên mục Báo Mới, rồi bấm **Tìm**.
+  HNews tự dò RSS, gợi ý sẵn tên báo và chuyên mục, cho xem trước vài tin, sau đó bấm **Thêm vào HNews**.
+  Có sẵn mục **Gợi ý nhanh** (Tuổi Trẻ, Thanh Niên, Dân Trí, VTV, VnEconomy, GenK…) để thêm bằng một chạm.
+- **Xoá nguồn**: trong **Cài đặt → Nguồn tin**, mỗi nguồn đang dùng có công tắc để ẩn tạm và nút **thùng rác** để xoá hẳn.
+  Lỡ tay xoá thì bấm **Khôi phục danh sách nguồn mặc định**.
 
 Các bản APK đều ký bằng cùng khoá `android/app/hnews.keystore`, nên bản mới cài đè lên bản cũ được, không mất dữ liệu.
 Khoá này chỉ dùng cho app cá nhân. Muốn dùng khoá riêng thì đặt các biến `HNEWS_KEYSTORE_FILE`, `HNEWS_KEYSTORE_PASSWORD`, `HNEWS_KEY_ALIAS`, `HNEWS_KEY_PASSWORD`.
@@ -51,11 +57,12 @@ npm run apk          # -> android/app/build/outputs/apk/release/HNews-<phiên b�
 | Tinh tế | RSS |
 | Báo Mới (Mới nhất, Nổi bật) | Đọc dữ liệu trang (Báo Mới không có RSS); link được đổi thẳng sang bài gốc của báo đăng tin |
 
-Tuổi Trẻ, Thanh Niên, Dân Trí, BBC Tiếng Việt có sẵn nhưng đang tắt (`"enabled": false`).
+Các báo khác (Tuổi Trẻ, Thanh Niên, Dân Trí, Người Lao Động, VTV, VnEconomy, Vietstock, GenK, Kênh 14, Soha, BBC Tiếng Việt…) có trong mục **Gợi ý nhanh** của app.
 
 ### Thêm / bớt nguồn
 
-Sửa `docs/sources.json` (app Android cần build lại để nhận danh sách mới):
+Trong app Android, thêm/xoá nguồn ngay trong app (xem trên). Danh sách nguồn **mặc định** và **gợi ý nhanh** nằm trong
+`docs/sources.json`. Trang web dùng file này, còn app cần build lại thì mới nhận danh sách mặc định mới:
 
 ```json
 { "name": "Tên báo", "category": "Chuyên mục", "url": "https://.../rss" }
@@ -100,3 +107,9 @@ branding/, assets/            logo gốc (SVG) và ảnh icon/màn hình chờ
 dist/                         file APK để cài
 .github/workflows/            cập nhật tự động + triển khai GitHub Pages
 ```
+
+## Tác giả
+
+**Trần Ngọc Hiện**
+- ĐT: [079 6868 079](tel:0796868079)
+- Email: [hiendhg@gmail.com](mailto:hiendhg@gmail.com)

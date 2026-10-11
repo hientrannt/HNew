@@ -30,6 +30,11 @@
   <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 12.5h9l1-12.5M10 11v5M14 11v5"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.5 3.5h3l1.5 4-2 1.5a11 11 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 4.5 5.5a2 2 0 0 1 2-2Z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4 7 8 6 8-6"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5a7 7 0 0 1 14 0"/></symbol>
 </svg>
 
 <header class="top">
@@ -74,6 +79,13 @@
   </div>
   <div class="sheet-body">
     <section>
+      <h3>Nguồn tin</h3>
+      <button class="add-btn" id="btn-addsrc"><svg><use href="#i-plus"/></svg>Thêm nguồn báo</button>
+      <p class="hint">Các nguồn đang dùng: bật/tắt để ẩn tạm, bấm <b>thùng rác</b> để xoá hẳn. Số trong ngoặc là số tin lấy được lần gần nhất.</p>
+      <div id="source-list"></div>
+      <button class="wide subtle" id="btn-resetsrc">Khôi phục danh sách nguồn mặc định</button>
+    </section>
+    <section>
       <h3>Giao diện</h3>
       <div class="row"><span>Chủ đề</span>
         <div class="seg" data-pref="theme">
@@ -92,16 +104,51 @@
       </div>
     </section>
     <section>
-      <h3>Nguồn tin</h3>
-      <p class="hint">Bật/tắt từng chuyên mục. Số trong ngoặc là số tin lấy được lần gần nhất.</p>
-      <div id="source-list"></div>
-    </section>
-    <section>
       <h3>Dữ liệu</h3>
       <button class="wide" id="btn-markall">Đánh dấu tất cả là đã đọc</button>
       <button class="wide" id="btn-clearread">Xoá lịch sử đã đọc</button>
     </section>
-    <p class="about" id="about"></p>
+    <section class="author">
+      <h3>Thông tin</h3>
+      <div class="author-card">
+        <div class="author-head">
+          <img src="icon.svg" alt="" width="48" height="48">
+          <div><b>HNews</b><span id="about"></span></div>
+        </div>
+        <div class="author-row"><svg><use href="#i-user"/></svg><span>Tác giả: <b>Trần Ngọc Hiện</b></span></div>
+        <a class="author-row" href="tel:0796868079"><svg><use href="#i-phone"/></svg><span>ĐT: 079 6868 079</span></a>
+        <a class="author-row" href="mailto:hiendhg@gmail.com"><svg><use href="#i-mail"/></svg><span>Email: hiendhg@gmail.com</span></a>
+      </div>
+      <p class="about">Nội dung tin thuộc bản quyền của các báo. HNews chỉ tổng hợp tiêu đề, tóm tắt và dẫn link về bài gốc.</p>
+    </section>
+  </div>
+</dialog>
+
+<dialog class="sheet" id="addsrc" aria-labelledby="addsrc-title">
+  <div class="sheet-head">
+    <h2 id="addsrc-title">Thêm nguồn báo</h2>
+    <button class="icon" data-close aria-label="Đóng"><svg><use href="#i-close"/></svg></button>
+  </div>
+  <div class="sheet-body">
+    <form id="find-form" class="find">
+      <label for="src-url">Địa chỉ trang báo hoặc link RSS</label>
+      <div class="find-row">
+        <input id="src-url" type="text" inputmode="url" placeholder="vd. tuoitre.vn hoặc https://…/rss" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+        <button type="submit" class="primary" id="btn-find">Tìm</button>
+      </div>
+      <p class="hint">HNews tự tìm RSS của trang. Có thể dán link chuyên mục (vd. vnexpress.net/rss/the-thao.rss) hoặc trang Báo Mới (baomoi.com/…epi).</p>
+    </form>
+    <div id="find-status" class="find-status" hidden></div>
+    <form id="save-form" class="found" hidden>
+      <div class="field"><label for="src-name">Tên báo</label><input id="src-name" required maxlength="40"></div>
+      <div class="field"><label for="src-cat">Chuyên mục</label><input id="src-cat" maxlength="40" placeholder="vd. Mới nhất, Kinh doanh…"></div>
+      <ul class="preview" id="src-preview"></ul>
+      <button type="submit" class="primary wide-btn">Thêm vào HNews</button>
+    </form>
+    <section>
+      <h3>Gợi ý nhanh</h3>
+      <div class="suggest" id="suggest"></div>
+    </section>
   </div>
 </dialog>
 

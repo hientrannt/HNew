@@ -197,5 +197,99 @@ const HNewFeeds = (() => {
     return m ? m[1].replace(/\\u002F/gi, "/").replace(/\\\//g, "/") : null;
   }
 
-  return { fetchAll, resolveOriginal, sourceKey };
+  // ---------- Tự dò nguồn mới từ địa chỉ trang báo hoặc link RSS ----------
+  const COMMON_PATHS = ["/rss/home.rss", "/rss/tin-moi-nhat.rss", "/home.rss", "/rss.xml", "/rss", "/feed", "/feed.xml",
+    "/index.rss", "/trang-chu.rss", "/tin-moi.rss", "/rss/trang-chu.rss"];
+  const looksXml = (t) => /^\s*(<\?xml|<rss|<feed|<rdf)/i.test(t) || /<rss[\s>]|<feed[\s>]/i.test(t.slice(0, 2000));
+  const abs = (href, base) => { try { return new URL(href, base).href; } catch { return null; } };
+
+  function feedTitle(text) {
+    const doc = new DOMParser().parseFromString(text, "application/xml");
+    const t = doc.querySelector("channel > title, feed > title")?.textContent || "";
+    return clean(t);
+  }
+  // Tên chuẩn của các báo hay gặp (theo tên miền).
+  const KNOWN = {
+    "vnexpress.net": "VnExpress", "tuoitre.vn": "Tuổi Trẻ", "thanhnien.vn": "Thanh Niên", "dantri.com.vn": "Dân Trí",
+    "tienphong.vn": "Tiền Phong", "nhandan.vn": "Nhân Dân", "vietnamplus.vn": "VietnamPlus", "laodong.vn": "Lao Động",
+    "genk.vn": "GenK", "kenh14.vn": "Kênh 14", "cafef.vn": "CafeF", "cafebiz.vn": "CafeBiz", "vneconomy.vn": "VnEconomy",
+    "vietstock.vn": "Vietstock", "nld.com.vn": "Người Lao Động", "vtv.vn": "VTV", "soha.vn": "Soha", "tinhte.vn": "Tinh tế",
+    "baomoi.com": "Báo Mới", "bbc.co.uk": "BBC Tiếng Việt", "bbc.com": "BBC Tiếng Việt", "znews.vn": "Znews",
+    "vietnamnet.vn": "VietnamNet", "24h.com.vn": "24h", "plo.vn": "Pháp Luật TP.HCM", "sggp.org.vn": "Sài Gòn Giải Phóng",
+    "vov.vn": "VOV", "baochinhphu.vn": "Báo Chính phủ", "afamily.vn": "aFamily", "ndh.vn": "NDH", "vnreview.vn": "VnReview",
+  };
+  const GENERIC = /^(feed|rss|home|trang chủ|tin mới( nhất)?|mới nhất|news|latest)$/i;
+  function knownName(url) {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    for (const [d, n] of Object.entries(KNOWN)) if (host === d || host.endsWith("." + d)) return n;
+    return null;
+  }
+  /** Đoán {name, category} từ link và tiêu đề feed. */
+  function guessName(url, title) {
+    const parts = (title || "").split(/\s+[-|–:»]\s+/).map((s) => s.replace(/\bRSS\b/gi, "").trim()).filter((s) => s && !GENERIC.test(s));
+    const known = knownName(url);
+    if (known) {
+      // Tiêu đề kiểu "Thể thao - VnExpress RSS" -> chuyên mục "Thể thao".
+      const cat = parts.find((p) => !norm(p).includes(norm(known)) && !norm(known).includes(norm(p)) && p.length <= 25 && !/báo|điện tử|online|news/i.test(p));
+      return { name: known, category: cat || "" };
+    }
+    const short = [...parts].sort((a, b) => a.length - b.length)[0];
+    if (short && short.length <= 30) return { name: short, category: "" };
+    const host = new URL(url).hostname.replace(/^www\./, "").split(".")[0];
+    return { name: host.charAt(0).toUpperCase() + host.slice(1), category: "" };
+  }
+  const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/gi, "d").toLowerCase();
+
+  async function tryFeed(url) {
+    const text = await fetchText(url, 0);
+    if (!looksXml(text)) return { html: text };
+    const items = parseRss(text, { name: "", category: "" });
+    return items.length ? { url, items, title: feedTitle(text) } : {};
+  }
+
+  /** Tìm nguồn tin từ thứ người dùng nhập. Trả về {url, type, name, category, items} hoặc ném lỗi. */
+  async function discover(input) {
+    let url = input.trim();
+    if (!url) throw new Error("Hãy nhập địa chỉ trang báo hoặc link RSS");
+    if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    let u;
+    try { u = new URL(url); } catch { throw new Error("Địa chỉ không hợp lệ"); }
+
+    if (/(^|\.)baomoi\.com$/i.test(u.hostname)) {
+      const html = await fetchText(url);
+      const items = parseBaomoi(html, { name: "Báo Mới", category: "" });
+      if (!items.length) throw new Error("Không đọc được tin từ trang Báo Mới này");
+      const cat = clean(/<title>([^<]+)<\/title>/i.exec(html)?.[1] || "").split(/\s+[-|]\s+/)[0].trim();
+      return { url, type: "baomoi", name: "Báo Mới", category: cat.length <= 25 && !/báo mới/i.test(cat) ? cat : "", items };
+    }
+
+    const tried = new Set();
+    const attempt = async (cand) => {
+      if (!cand || tried.has(cand)) return null;
+      tried.add(cand);
+      try { return await tryFeed(cand); } catch { return null; }
+    };
+
+    // 1) Chính là link RSS?  2) Trang có khai báo RSS?  3) Thử các đường dẫn RSS hay gặp.
+    const first = await attempt(url);
+    if (first?.items) return { url, type: "rss", ...guessName(url, first.title), items: first.items };
+    const candidates = [];
+    if (first?.html) {
+      const re = /<link[^>]+type=["']application\/(?:rss|atom)\+xml["'][^>]*>/gi;
+      for (const tag of first.html.match(re) || []) {
+        const href = /href=["']([^"']+)["']/i.exec(tag)?.[1];
+        if (href) candidates.push(abs(href.replace(/&amp;/g, "&"), url));
+      }
+      // Trang liệt kê RSS (vd. /rss): lấy các link .rss trong trang.
+      for (const m of first.html.matchAll(/href=["']([^"']+\.(?:rss|xml))["']/gi)) candidates.push(abs(m[1].replace(/&amp;/g, "&"), url));
+    }
+    for (const p of COMMON_PATHS) candidates.push(u.origin + p);
+    for (const cand of candidates.slice(0, 24)) {
+      const r = await attempt(cand);
+      if (r?.items) return { url: cand, type: "rss", ...guessName(cand, r.title), items: r.items };
+    }
+    throw new Error("Không tìm thấy RSS ở trang này. Hãy thử dán trực tiếp link RSS của báo.");
+  }
+
+  return { fetchAll, resolveOriginal, sourceKey, discover };
 })();

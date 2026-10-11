@@ -13,7 +13,7 @@ const plugin = (name) => (NATIVE ? (window.capacitorExports?.registerPlugin || C
 const Browser = plugin("Browser");
 const App = plugin("App");
 const SystemBars = plugin("SystemBars");
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 
 const state = {
   items: [],
@@ -95,7 +95,16 @@ function chips(el, values, current, onPick, counts) {
   el.hidden = values.length < 2;
 }
 
-const visibleItems = () => state.items.filter((i) => !state.off.has(keyOf(i)));
+// Danh sách nguồn: mặc định lấy từ sources.json; trong app người dùng thêm/xoá được (lưu trên máy).
+let mySources = store.get("mysources", null);
+const sourcesList = () => mySources || (state.config?.sources || []).filter((s) => s.enabled !== false);
+const activeKeys = () => new Set(sourcesList().map((s) => HNewFeeds.sourceKey(s)).filter((k) => !state.off.has(k)));
+function saveSources(list) { mySources = list; store.set("mysources", list); sourcesChanged = true; }
+function visibleItems() {
+  if (!NATIVE || !state.config) return state.items.filter((i) => !state.off.has(keyOf(i)));
+  const on = activeKeys();
+  return state.items.filter((i) => on.has(keyOf(i)));
+}
 
 function filtered() {
   const q = norm(state.query.trim());
@@ -142,6 +151,14 @@ function render() {
   chips($("#sources"), Object.keys(bySource), state.source, (v) => {
     state.source = v; state.category = ""; store.set("source", v); store.set("category", ""); render(); scrollTo(0, 0);
   }, counts(bySource));
+  if (NATIVE) {
+    const add = document.createElement("button");
+    add.className = "add-chip"; add.setAttribute("aria-label", "Thêm nguồn báo");
+    add.innerHTML = '<svg><use href="#i-plus"/></svg>Thêm';
+    add.onclick = openAddSource;
+    $("#sources").append(add);
+    $("#sources").hidden = false;
+  }
   chips($("#categories"), Object.keys(byCat), state.category, (v) => {
     state.category = v; store.set("category", v); render(); scrollTo(0, 0);
   }, counts(byCat));
@@ -169,10 +186,11 @@ function render() {
   }
   if (!items.length) {
     if (state.loading && !state.items.length) frag.append(skeleton());
+    else if (NATIVE && state.config && !activeKeys().size) frag.append(emptyState("Chưa có nguồn báo", "Bấm nút “+ Thêm” ở trên để thêm báo bạn muốn đọc."));
     else if (!state.items.length) frag.append(emptyState("Chưa có tin", "Kiểm tra kết nối mạng rồi kéo xuống để tải lại."));
     else if (state.query) frag.append(emptyState("Không tìm thấy", `Không có tin nào khớp “${state.query}”.`));
     else if (state.unreadOnly) frag.append(emptyState("Đã đọc hết!", "Bạn đã đọc tất cả tin trong mục này."));
-    else frag.append(emptyState("Không có tin", "Hãy bật thêm nguồn tin trong Cài đặt."));
+    else frag.append(emptyState("Không có tin", "Bấm Cài đặt → “Thêm nguồn báo” hoặc bật lại nguồn tin."));
   }
   list.replaceChildren(frag);
 
@@ -267,8 +285,8 @@ async function refresh({ manual = false } = {}) {
   try {
     if (NATIVE) {
       // App Android: lấy tin trực tiếp từ các báo ngay trên máy.
-      const cfg = await loadConfig();
-      const total = cfg.sources.filter((s) => s.enabled !== false && !state.off.has(HNewFeeds.sourceKey(s))).length || 1;
+      const cfg = { ...(await loadConfig()), sources: sourcesList() };
+      const total = activeKeys().size || 1;
       let done = 0;
       const data = await HNewFeeds.fetchAll(cfg, (k) => !state.off.has(k), () => setLoading(true, 10 + (90 * ++done) / total));
       if (!data.items.length && state.items.length) throw new Error("Không lấy được tin");
@@ -346,7 +364,7 @@ const ptr = $("#ptr");
 let pull = null;
 function hidePtr() { ptr.style.transition = "transform .25s, opacity .25s"; ptr.style.transform = ""; ptr.style.opacity = ""; }
 addEventListener("touchstart", (e) => {
-  pull = scrollY <= 0 && !state.loading && !$("#settings").open ? { y: e.touches[0].clientY, d: 0 } : null;
+  pull = scrollY <= 0 && !state.loading && !$("#settings").open && !addDlg.open ? { y: e.touches[0].clientY, d: 0 } : null;
 }, { passive: true });
 addEventListener("touchmove", (e) => {
   if (!pull) return;
@@ -390,20 +408,26 @@ for (const seg of document.querySelectorAll(".seg")) {
 
 async function renderSourceList() {
   const box = $("#source-list");
-  let cfg;
-  try { cfg = await loadConfig(); } catch { box.textContent = "Không đọc được danh sách nguồn."; return; }
+  try { await loadConfig(); } catch { box.textContent = "Không đọc được danh sách nguồn."; return; }
   const status = new Map((state.meta?.sources || []).map((s) => [`${s.name}|${s.category}`, s]));
+  const list = sourcesList();
   const groups = new Map();
-  for (const s of cfg.sources) {
-    if (s.enabled === false) continue;
+  for (const s of list) {
     if (!groups.has(s.name)) groups.set(s.name, []);
     groups.get(s.name).push(s);
   }
-  box.replaceChildren(...[...groups].map(([name, list]) => {
+  $("#btn-addsrc").hidden = !NATIVE;
+  $("#btn-resetsrc").hidden = !NATIVE || !mySources;
+  if (!list.length) {
+    box.innerHTML = '<p class="hint">Chưa có nguồn nào. Bấm “Thêm nguồn báo” ở trên.</p>';
+    return;
+  }
+  box.replaceChildren(...[...groups].map(([name, items]) => {
     const g = document.createElement("div"); g.className = "src-group";
     const h = document.createElement("h4"); h.textContent = name; g.append(h);
-    for (const s of list) {
+    for (const s of items) {
       const key = HNewFeeds.sourceKey(s), st = status.get(key);
+      const row = document.createElement("div"); row.className = "src-row";
       const label = document.createElement("label");
       const span = document.createElement("span"); span.textContent = s.category || "Tất cả";
       if (st) {
@@ -412,8 +436,12 @@ async function renderSourceList() {
         if (!st.ok) small.className = "err";
         span.append(small);
       }
+      const url = document.createElement("small"); url.className = "src-url";
+      try { url.textContent = new URL(s.url).hostname.replace(/^www\./, ""); } catch { url.textContent = s.url; }
+      span.append(url);
       const sw = document.createElement("input");
       sw.type = "checkbox"; sw.className = "switch"; sw.checked = !state.off.has(key);
+      sw.setAttribute("aria-label", `Bật/tắt ${name} – ${s.category || ""}`);
       sw.onchange = () => {
         if (sw.checked) state.off.delete(key); else state.off.add(key);
         store.set("off", [...state.off]);
@@ -421,18 +449,118 @@ async function renderSourceList() {
         render();
       };
       label.append(span, sw);
-      g.append(label);
+      row.append(label);
+      if (NATIVE) {
+        const del = document.createElement("button");
+        del.className = "icon del"; del.setAttribute("aria-label", `Xoá ${name} – ${s.category || ""}`);
+        del.innerHTML = '<svg><use href="#i-trash"/></svg>';
+        del.onclick = () => {
+          if (!confirm(`Xoá nguồn “${name}${s.category ? " – " + s.category : ""}” khỏi HNews?`)) return;
+          saveSources(sourcesList().filter((x) => HNewFeeds.sourceKey(x) !== key));
+          state.off.delete(key); store.set("off", [...state.off]);
+          renderSourceList(); render();
+          toast(`Đã xoá ${name}${s.category ? " – " + s.category : ""}`);
+        };
+        row.append(del);
+      }
+      g.append(row);
     }
     return g;
   }));
 }
+
+$("#btn-resetsrc").onclick = () => {
+  if (!confirm("Khôi phục danh sách nguồn mặc định? Các nguồn bạn tự thêm sẽ bị xoá.")) return;
+  mySources = null; store.set("mysources", null); sourcesChanged = true;
+  renderSourceList(); render(); refresh();
+};
+
+// ---------- Thêm nguồn báo ----------
+const addDlg = $("#addsrc");
+let found = null, hintSrc = null;
+function addStatus(msg, kind = "") {
+  const el = $("#find-status");
+  el.hidden = !msg; el.className = "find-status " + kind; el.textContent = msg || "";
+}
+function openAddSource() {
+  found = null; hintSrc = null;
+  $("#src-url").value = "";
+  $("#save-form").hidden = true;
+  addStatus("");
+  renderSuggest();
+  addDlg.showModal();
+  setTimeout(() => $("#src-url").focus(), 250);
+}
+function renderSuggest() {
+  const have = new Set(sourcesList().map((s) => s.url));
+  const box = $("#suggest");
+  const list = (state.config?.suggestions || []).filter((s) => !have.has(s.url));
+  box.replaceChildren(...list.map((s) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.innerHTML = '<svg><use href="#i-plus"/></svg>';
+    b.append(`${s.name}${s.category ? " · " + s.category : ""}`);
+    b.onclick = () => { hintSrc = s; $("#src-url").value = s.url; findSource(); };
+    return b;
+  }));
+  if (!list.length) box.innerHTML = '<p class="hint">Bạn đã thêm hết các gợi ý.</p>';
+}
+async function findSource() {
+  const input = $("#src-url").value;
+  if (hintSrc && hintSrc.url !== input.trim()) hintSrc = null;
+  $("#save-form").hidden = true;
+  $("#btn-find").disabled = true;
+  addStatus("Đang tìm nguồn tin…", "busy");
+  try {
+    found = await HNewFeeds.discover(input);
+    $("#src-name").value = hintSrc?.name || found.name;
+    $("#src-cat").value = hintSrc?.category || found.category || "Mới nhất";
+    const ul = $("#src-preview");
+    ul.replaceChildren(...found.items.slice(0, 4).map((i) => { const li = document.createElement("li"); li.textContent = i.title; return li; }));
+    addStatus(`✓ Tìm thấy ${found.items.length} tin`, "ok");
+    $("#save-form").hidden = false;
+  } catch (e) {
+    found = null;
+    addStatus(e.message || "Không tìm được nguồn tin.", "err");
+  } finally {
+    $("#btn-find").disabled = false;
+  }
+}
+$("#find-form").addEventListener("submit", (e) => { e.preventDefault(); findSource(); });
+$("#save-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (!found) return;
+  const src = { name: $("#src-name").value.trim(), category: $("#src-cat").value.trim(), url: found.url };
+  if (found.type !== "rss") src.type = found.type;
+  if (!src.name) return;
+  const key = HNewFeeds.sourceKey(src);
+  if (sourcesList().some((s) => HNewFeeds.sourceKey(s) === key)) {
+    addStatus(`Đã có nguồn “${src.name}${src.category ? " – " + src.category : ""}”. Hãy đặt chuyên mục khác.`, "err");
+    return;
+  }
+  saveSources([...sourcesList(), src]);
+  state.off.delete(key); store.set("off", [...state.off]);
+  // Hiện ngay các tin vừa tìm được, không cần chờ tải lại.
+  const seen = new Set(state.items.map((i) => i.link));
+  const fresh = found.items.filter((i) => !seen.has(i.link)).map((i) => ({ ...i, source: src.name, category: src.category }));
+  const items = [...state.items, ...fresh].sort((a, b) => (b.published || "").localeCompare(a.published || ""));
+  const meta = { ...(state.meta || {}), generated: state.meta?.generated || new Date().toISOString(), items,
+    sources: [...(state.meta?.sources || []), { name: src.name, category: src.category, ok: true, count: found.items.length }] };
+  store.set("cache", meta);
+  setData(meta);
+  addDlg.close();
+  renderSourceList();
+  toast(`Đã thêm ${src.name}${src.category ? " – " + src.category : ""}`);
+});
+addDlg.addEventListener("click", (e) => { if (e.target === addDlg || e.target.closest("[data-close]")) addDlg.close(); });
+$("#btn-addsrc").onclick = openAddSource;
 
 let sourcesChanged = false;
 const dlg = $("#settings");
 $("#btn-settings").onclick = () => {
   syncSeg();
   renderSourceList();
-  $("#about").textContent = `HNews ${VERSION} · ${NATIVE ? "Ứng dụng Android" : "Bản web"} · Tin thuộc bản quyền của các báo.`;
+  $("#about").textContent = `Phiên bản ${VERSION} · ${NATIVE ? "Ứng dụng Android" : "Bản web"}`;
   sourcesChanged = false;
   dlg.showModal();
 };
@@ -441,8 +569,7 @@ dlg.addEventListener("close", () => {
   // Bật thêm nguồn trong app -> lấy tin của nguồn đó ngay.
   if (NATIVE && sourcesChanged) {
     const have = new Set(state.items.map(keyOf));
-    const cfg = state.config;
-    if (cfg?.sources.some((s) => s.enabled !== false && !state.off.has(HNewFeeds.sourceKey(s)) && !have.has(HNewFeeds.sourceKey(s)))) refresh();
+    if ([...activeKeys()].some((k) => !have.has(k))) refresh();
   }
 });
 $("#btn-markall").onclick = () => {
@@ -465,7 +592,8 @@ if (App) {
   // Nút Back của Android: đóng bảng/ô tìm kiếm trước; ở màn hình chính thì chỉ thu nhỏ app
   // (không thoát) để quay lại vẫn đúng chỗ đang đọc.
   App.addListener("backButton", () => {
-    if (dlg.open) dlg.close();
+    if (addDlg.open) addDlg.close();
+    else if (dlg.open) dlg.close();
     else if (!$("#searchbox").hidden) toggleSearch(false);
     else { captureAnchor(); App.minimizeApp(); }
   });
@@ -474,11 +602,14 @@ if (App) {
 // ---------- Khởi động ----------
 applyTheme();
 if (NATIVE) {
-  const cache = store.get("cache", null);
-  if (cache?.items?.length) setData(cache, { initial: true });
-  else render();
-  refresh();
+  loadConfig().catch(() => {}).finally(() => {
+    const cache = store.get("cache", null);
+    if (cache?.items?.length) setData(cache, { initial: true });
+    else render();
+    refresh();
+  });
 } else {
+  loadConfig().catch(() => {});
   render();
   (async () => {
     state.loading = true; render();

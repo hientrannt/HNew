@@ -2,26 +2,145 @@
   "max_items_per_source": 30,
   "max_age_hours": 48,
   "sources": [
-    { "name": "VnExpress", "category": "Mới nhất", "url": "https://vnexpress.net/rss/tin-moi-nhat.rss" },
-    { "name": "VnExpress", "category": "Kinh doanh", "url": "https://vnexpress.net/rss/kinh-doanh.rss" },
-    { "name": "VnExpress", "category": "Số hoá", "url": "https://vnexpress.net/rss/so-hoa.rss" },
-    { "name": "VnExpress", "category": "Thế giới", "url": "https://vnexpress.net/rss/the-gioi.rss" },
-
-    { "name": "CafeF", "category": "Mới nhất", "url": "https://cafef.vn/home.rss" },
-    { "name": "CafeF", "category": "Chứng khoán", "url": "https://cafef.vn/thi-truong-chung-khoan.rss" },
-    { "name": "CafeF", "category": "Doanh nghiệp", "url": "https://cafef.vn/doanh-nghiep.rss" },
-    { "name": "CafeF", "category": "Tài chính – Ngân hàng", "url": "https://cafef.vn/tai-chinh-ngan-hang.rss" },
-    { "name": "CafeF", "category": "Vĩ mô", "url": "https://cafef.vn/vi-mo-dau-tu.rss" },
-    { "name": "CafeF", "category": "Bất động sản", "url": "https://cafef.vn/bat-dong-san.rss" },
-
-    { "name": "Tinh tế", "category": "Công nghệ", "url": "https://tinhte.vn/rss" },
-
-    { "name": "Báo Mới", "category": "Mới nhất", "type": "baomoi", "url": "https://baomoi.com/tin-moi.epi" },
-    { "name": "Báo Mới", "category": "Nổi bật", "type": "baomoi", "url": "https://baomoi.com/" },
-
-    { "name": "Tuổi Trẻ", "category": "Mới nhất", "url": "https://tuoitre.vn/rss/tin-moi-nhat.rss", "enabled": false },
-    { "name": "Thanh Niên", "category": "Mới nhất", "url": "https://thanhnien.vn/rss/home.rss", "enabled": false },
-    { "name": "Dân Trí", "category": "Mới nhất", "url": "https://dantri.com.vn/rss/home.rss", "enabled": false },
-    { "name": "BBC Tiếng Việt", "category": "Thế giới", "url": "https://feeds.bbci.co.uk/vietnamese/rss.xml", "enabled": false }
+    {
+      "name": "VnExpress",
+      "category": "Mới nhất",
+      "url": "https://vnexpress.net/rss/tin-moi-nhat.rss"
+    },
+    {
+      "name": "VnExpress",
+      "category": "Kinh doanh",
+      "url": "https://vnexpress.net/rss/kinh-doanh.rss"
+    },
+    {
+      "name": "VnExpress",
+      "category": "Số hoá",
+      "url": "https://vnexpress.net/rss/so-hoa.rss"
+    },
+    {
+      "name": "VnExpress",
+      "category": "Thế giới",
+      "url": "https://vnexpress.net/rss/the-gioi.rss"
+    },
+    {
+      "name": "CafeF",
+      "category": "Mới nhất",
+      "url": "https://cafef.vn/home.rss"
+    },
+    {
+      "name": "CafeF",
+      "category": "Chứng khoán",
+      "url": "https://cafef.vn/thi-truong-chung-khoan.rss"
+    },
+    {
+      "name": "CafeF",
+      "category": "Doanh nghiệp",
+      "url": "https://cafef.vn/doanh-nghiep.rss"
+    },
+    {
+      "name": "CafeF",
+      "category": "Tài chính – Ngân hàng",
+      "url": "https://cafef.vn/tai-chinh-ngan-hang.rss"
+    },
+    {
+      "name": "CafeF",
+      "category": "Vĩ mô",
+      "url": "https://cafef.vn/vi-mo-dau-tu.rss"
+    },
+    {
+      "name": "CafeF",
+      "category": "Bất động sản",
+      "url": "https://cafef.vn/bat-dong-san.rss"
+    },
+    {
+      "name": "Tinh tế",
+      "category": "Công nghệ",
+      "url": "https://tinhte.vn/rss"
+    },
+    {
+      "name": "Báo Mới",
+      "category": "Mới nhất",
+      "type": "baomoi",
+      "url": "https://baomoi.com/tin-moi.epi"
+    },
+    {
+      "name": "Báo Mới",
+      "category": "Nổi bật",
+      "type": "baomoi",
+      "url": "https://baomoi.com/"
+    }
+  ],
+  "suggestions": [
+    {
+      "name": "Tuổi Trẻ",
+      "category": "Mới nhất",
+      "url": "https://tuoitre.vn/rss/tin-moi-nhat.rss"
+    },
+    {
+      "name": "Thanh Niên",
+      "category": "Mới nhất",
+      "url": "https://thanhnien.vn/rss/home.rss"
+    },
+    {
+      "name": "Dân Trí",
+      "category": "Mới nhất",
+      "url": "https://dantri.com.vn/rss/home.rss"
+    },
+    {
+      "name": "Người Lao Động",
+      "category": "Mới nhất",
+      "url": "https://nld.com.vn/rss/home.rss"
+    },
+    {
+      "name": "VTV",
+      "category": "Mới nhất",
+      "url": "https://vtv.vn/rss/home.rss"
+    },
+    {
+      "name": "VnEconomy",
+      "category": "Mới nhất",
+      "url": "https://vneconomy.vn/tin-moi.rss"
+    },
+    {
+      "name": "Vietstock",
+      "category": "Cổ phiếu",
+      "url": "https://vietstock.vn/830/chung-khoan/co-phieu.rss"
+    },
+    {
+      "name": "GenK",
+      "category": "Công nghệ",
+      "url": "https://genk.vn/rss/home.rss"
+    },
+    {
+      "name": "Kênh 14",
+      "category": "Giải trí",
+      "url": "https://kenh14.vn/rss/home.rss"
+    },
+    {
+      "name": "Soha",
+      "category": "Mới nhất",
+      "url": "https://soha.vn/rss/home.rss"
+    },
+    {
+      "name": "BBC Tiếng Việt",
+      "category": "Thế giới",
+      "url": "https://feeds.bbci.co.uk/vietnamese/rss.xml"
+    },
+    {
+      "name": "Báo Mới",
+      "category": "Kinh tế",
+      "type": "baomoi",
+      "url": "https://baomoi.com/kinh-te.epi"
+    },
+    {
+      "name": "VnExpress",
+      "category": "Thể thao",
+      "url": "https://vnexpress.net/rss/the-thao.rss"
+    },
+    {
+      "name": "VnExpress",
+      "category": "Sức khỏe",
+      "url": "https://vnexpress.net/rss/suc-khoe.rss"
+    }
   ]
 }
