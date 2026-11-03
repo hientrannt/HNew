@@ -14,6 +14,7 @@ const Browser = plugin("Browser");
 const App = plugin("App");
 const SystemBars = plugin("SystemBars");
 const VERSION = "1.2.0";
+const PLATFORM = NATIVE && Cap.getPlatform ? Cap.getPlatform() : "web"; // "android" | "ios" | "web"
 
 const state = {
   items: [],
@@ -324,7 +325,8 @@ async function openArticle(it) {
       } catch {}
     }
   }
-  if (Browser) await Browser.open({ url, toolbarColor: "#B3261E" });
+  // iOS: mở Safari toàn màn hình; Android: Chrome Custom Tab.
+  if (Browser) await Browser.open({ url, toolbarColor: "#B3261E", presentationStyle: "fullscreen" });
   else window.open(url, "_blank", "noopener");
 }
 
@@ -560,7 +562,7 @@ const dlg = $("#settings");
 $("#btn-settings").onclick = () => {
   syncSeg();
   renderSourceList();
-  $("#about").textContent = `Phiên bản ${VERSION} · ${NATIVE ? "Ứng dụng Android" : "Bản web"}`;
+  $("#about").textContent = `Phiên bản ${VERSION} · ${{ android: "Ứng dụng Android", ios: "Ứng dụng iOS" }[PLATFORM] || "Bản web"}`;
   sourcesChanged = false;
   dlg.showModal();
 };

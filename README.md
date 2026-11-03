@@ -48,6 +48,40 @@ npm run apk          # -> android/app/build/outputs/apk/release/HNews-<phiên b�
 
 Đổi logo: sửa `branding/logo-*.svg`, rồi chạy `node branding/render-icons.mjs` và `npx capacitor-assets generate --android`.
 
+## Ứng dụng iPhone (iOS)
+
+Dự án Xcode nằm ở `ios/App/App.xcodeproj` (Capacitor 8, Swift Package Manager, không cần CocoaPods).
+App hiển thị **toàn màn hình** trên mọi kích thước, kể cả iPhone gập/hai màn hình:
+- **App universal** (iPhone + iPad): trên màn hình lớn app chạy đúng độ phân giải, không bị phóng to khung iPhone.
+- **Launch Storyboard** và `UIRequiresFullScreen`: luôn chiếm trọn màn hình, hỗ trợ mọi chiều xoay.
+- **WebView tràn viền** (`contentInset: never`): giao diện tự chừa tai thỏ / Dynamic Island / thanh Home bằng `env(safe-area-inset-*)`.
+- **Gập/mở hay xoay máy**: bố cục tự đổi 1 ↔ 2–3 cột và giữ đúng tin đang đọc.
+- Bài báo mở trong Safari toàn màn hình (SFSafariViewController); đóng lại là về đúng chỗ đang đọc.
+
+### Cách 1: build bằng Xcode 27.2 trên Mac (nhanh nhất để cài lên iPhone của bạn)
+
+```bash
+git clone https://github.com/hientrannt/HNew.git && cd HNew
+npm ci
+npm run ios            # = npx cap sync ios && mở Xcode
+```
+
+Trong Xcode:
+1. Chọn target **App → Signing & Capabilities → Team**, chọn Apple ID của bạn (tài khoản miễn phí cũng được).
+2. Cắm iPhone (hoặc chọn qua Wi-Fi), chọn máy ở thanh trên cùng rồi bấm **▶ Run**.
+3. Lần đầu, trên iPhone vào **Cài đặt → Cài đặt chung → VPN & Quản lý thiết bị** để tin cậy nhà phát triển. Nếu được hỏi thì bật thêm **Chế độ nhà phát triển**.
+
+Với Apple ID miễn phí, app chạy được 7 ngày, sau đó build lại là dùng tiếp. Tài khoản Apple Developer trả phí không bị giới hạn này và gửi được TestFlight.
+
+### Cách 2: build tự động trên GitHub (Actions → "Build iOS (Xcode)" → Run workflow)
+
+Ô **xcode** mặc định là `27.2`; nếu máy build của GitHub chưa có bản này, workflow báo lỗi kèm danh sách các bản có sẵn.
+Kết quả nằm ở mục *Artifacts*:
+- `HNews-simulator.zip`: chạy trên iOS Simulator.
+- `HNews-unsigned.ipa`: cài lên iPhone bằng **Sideloadly** hoặc **AltStore** (các công cụ này ký lại bằng Apple ID của bạn).
+- `HNews.ipa`: bản đã ký, chỉ có khi đặt các Secrets `IOS_P12_BASE64`, `IOS_P12_PASSWORD`, `IOS_PROFILE_BASE64`, `IOS_TEAM_ID`
+  (chứng chỉ *Apple Distribution* .p12 và provisioning profile của app `io.github.hientrannt.hnews`, mã hoá base64).
+
 ## Nguồn tin hiện có
 
 | Báo | Cách lấy |
@@ -103,9 +137,10 @@ docs/sources.json             danh sách nguồn báo
 scripts/build.py              lấy RSS / Báo Mới, làm sạch, tóm tắt -> docs/data/news.json
 docs/                         giao diện dùng chung cho web và app (index.html, style.css, app.js, js/feeds.js)
 android/                      dự án Android (Capacitor)
+ios/                          dự án iOS / Xcode (Capacitor)
 branding/, assets/            logo gốc (SVG) và ảnh icon/màn hình chờ
 dist/                         file APK để cài
-.github/workflows/            cập nhật tự động + triển khai GitHub Pages
+.github/workflows/            cập nhật tin + GitHub Pages, build APK Android, build iOS
 ```
 
 ## Tác giả

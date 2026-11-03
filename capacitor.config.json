@@ -19,5 +19,11 @@
       "insetsHandling": "css",
       "initialViewportFitValueHint": "cover"
     }
+  },
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#F6F4EF",
+    "scrollEnabled": true,
+    "allowsLinkPreview": false
   }
 }
