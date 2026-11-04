@@ -12,6 +12,8 @@ on:
   push:
     branches: [main]
     paths: ["docs/**", "ios/**", "capacitor.config.json", "package.json", "package-lock.json", ".github/workflows/build-ios.yml"]
+  pull_request:
+    paths: ["docs/**", "ios/**", "capacitor.config.json", "package.json", "package-lock.json", ".github/workflows/build-ios.yml"]
 
 jobs:
   ios:
@@ -28,13 +30,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Chọn Xcode ${{ env.XCODE_VERSION }}
+      - name: Chọn Xcode (ưu tiên ${{ env.XCODE_VERSION }})
         run: |
           APP="/Applications/Xcode_${XCODE_VERSION}.app"
           if [ ! -d "$APP" ]; then
-            echo "::error::Máy build không có Xcode ${XCODE_VERSION}. Các bản có sẵn:"
-            ls -d /Applications/Xcode*.app
-            exit 1
+            # Máy build của GitHub chưa chắc có đúng bản này: dùng Xcode mặc định để vẫn kiểm tra build được.
+            echo "::warning::Máy build chưa có Xcode ${XCODE_VERSION} (có: $(ls -d /Applications/Xcode_*.app | xargs -n1 basename | tr '\n' ' ')). Dùng Xcode mặc định của máy build."
+            APP="/Applications/Xcode.app"
           fi
           sudo xcode-select -s "$APP/Contents/Developer"
           xcodebuild -version
