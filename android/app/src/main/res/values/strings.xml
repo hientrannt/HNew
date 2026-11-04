@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HNews</string>
+    <string name="title_activity_main">HNews</string>
+    <string name="package_name">io.github.hientrannt.hnews</string>
+    <string name="custom_url_scheme">io.github.hientrannt.hnews</string>
+</resources>

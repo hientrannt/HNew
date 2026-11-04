@@ -1,0 +1,150 @@
+# HNews – Trang điểm tin cá nhân
+
+Gom tin từ các báo bạn hay đọc vào một trang, mỗi tin có tiêu đề, tóm tắt ngắn, ảnh và giờ đăng.
+Bấm vào tin sẽ mở bài gốc trên trang báo. Giao diện tối ưu cho Galaxy Z Fold:
+
+- **Màn hình ngoài (gập)**: 1 cột, dễ lướt bằng một tay.
+- **Màn hình trong (mở)**: tự chia 2–3 cột, xem được nhiều tin cùng lúc.
+- Chế độ **Gọn** (☰, mặc định): danh sách dày, ảnh nhỏ bên phải, nhiều tin nhất trên một màn hình. Tắt đi để xem dạng thẻ ảnh lớn.
+- Lọc theo **báo** và **chuyên mục** (số bên cạnh là số tin chưa đọc), **tìm kiếm** không cần gõ dấu (⌕).
+- Tin đã bấm sẽ mờ đi; nút ◐ để chỉ hiện tin chưa đọc.
+- **Đọc liền mạch khi gập/mở máy**: đang đọc ở màn hình ngoài mà mở máy ra (hoặc gập lại), trang không tải lại mà giữ đúng tin đang đọc ở đầu màn hình, chỉ đổi số cột. Thoát app rồi mở lại (trong 12 giờ) cũng quay về đúng chỗ đang đọc dở, bộ lọc được giữ nguyên.
+- Tự theo chế độ sáng/tối của máy. Có thể "Thêm vào màn hình chính" để mở như một app (PWA).
+
+## Ứng dụng Android (APK)
+
+**Tải về:** [`dist/HNews-1.2.0.apk`](dist/HNews-1.2.0.apk). Trên GitHub, mở file rồi bấm **Download/View raw**.
+
+Cài đặt trên Galaxy Fold:
+1. Mở file APK vừa tải. Nếu Android hỏi, bật **Cho phép cài đặt từ nguồn này** cho trình duyệt hoặc ứng dụng Tệp.
+2. Bấm **Cài đặt** rồi **Mở**.
+3. Biểu tượng **HNews** sẽ nằm trên màn hình chính.
+
+Khác với bản web, app lấy tin **trực tiếp từ các báo ngay trên điện thoại**, không cần GitHub Pages:
+- Mở app là có ngay tin đã lưu, sau đó tự cập nhật (kéo xuống để tải lại, hoặc tự làm mới nếu tin cũ hơn 10 phút).
+- Bài báo mở trong trình duyệt nhúng (Chrome Custom Tab); đóng lại là về đúng chỗ đang đọc.
+- Tin Báo Mới mở thẳng bài gốc của tờ báo đăng tin.
+- Nút **Back** của Android chỉ thu nhỏ app, không thoát. Gập/mở máy, app không tải lại.
+- **Cài đặt** (biểu tượng thanh trượt): chủ đề sáng/tối, cỡ chữ, kiểu hiển thị, bật/tắt từng nguồn và chuyên mục.
+- **Thêm nguồn báo**: bấm nút **＋ Thêm** ở cuối hàng tên báo, hoặc **Cài đặt → Thêm nguồn báo**.
+  Nhập địa chỉ trang báo (vd. `tuoitre.vn`) hoặc dán link RSS / link chuyên mục Báo Mới, rồi bấm **Tìm**.
+  HNews tự dò RSS, gợi ý sẵn tên báo và chuyên mục, cho xem trước vài tin, sau đó bấm **Thêm vào HNews**.
+  Có sẵn mục **Gợi ý nhanh** (Tuổi Trẻ, Thanh Niên, Dân Trí, VTV, VnEconomy, GenK…) để thêm bằng một chạm.
+- **Xoá nguồn**: trong **Cài đặt → Nguồn tin**, mỗi nguồn đang dùng có công tắc để ẩn tạm và nút **thùng rác** để xoá hẳn.
+  Lỡ tay xoá thì bấm **Khôi phục danh sách nguồn mặc định**.
+
+Các bản APK đều ký bằng cùng khoá `android/app/hnews.keystore`, nên bản mới cài đè lên bản cũ được, không mất dữ liệu.
+Khoá này chỉ dùng cho app cá nhân. Muốn dùng khoá riêng thì đặt các biến `HNEWS_KEYSTORE_FILE`, `HNEWS_KEYSTORE_PASSWORD`, `HNEWS_KEY_ALIAS`, `HNEWS_KEY_PASSWORD`.
+
+### Tự build APK
+
+- **Trên GitHub:** tab **Actions → "Build APK Android" → Run workflow**, xong thì tải APK ở mục *Artifacts*.
+- **Trên máy:** cần Node 22, JDK 21 và Android SDK 36.
+
+```bash
+npm ci
+npm run apk          # -> android/app/build/outputs/apk/release/HNews-<phiên bản>-release.apk
+```
+
+Đổi logo: sửa `branding/logo-*.svg`, rồi chạy `node branding/render-icons.mjs` và `npx capacitor-assets generate --android`.
+
+## Ứng dụng iPhone (iOS)
+
+Dự án Xcode nằm ở `ios/App/App.xcodeproj` (Capacitor 8, Swift Package Manager, không cần CocoaPods).
+App hiển thị **toàn màn hình** trên mọi kích thước, kể cả iPhone gập/hai màn hình:
+- **App universal** (iPhone + iPad): trên màn hình lớn app chạy đúng độ phân giải, không bị phóng to khung iPhone.
+- **Launch Storyboard** và `UIRequiresFullScreen`: luôn chiếm trọn màn hình, hỗ trợ mọi chiều xoay.
+- **WebView tràn viền** (`contentInset: never`): giao diện tự chừa tai thỏ / Dynamic Island / thanh Home bằng `env(safe-area-inset-*)`.
+- **Gập/mở hay xoay máy**: bố cục tự đổi 1 ↔ 2–3 cột và giữ đúng tin đang đọc.
+- Bài báo mở trong Safari toàn màn hình (SFSafariViewController); đóng lại là về đúng chỗ đang đọc.
+
+### Cách 1: build bằng Xcode 27.2 trên Mac (nhanh nhất để cài lên iPhone của bạn)
+
+```bash
+git clone https://github.com/hientrannt/HNew.git && cd HNew
+npm ci
+npm run ios            # = npx cap sync ios && mở Xcode
+```
+
+Trong Xcode:
+1. Chọn target **App → Signing & Capabilities → Team**, chọn Apple ID của bạn (tài khoản miễn phí cũng được).
+2. Cắm iPhone (hoặc chọn qua Wi-Fi), chọn máy ở thanh trên cùng rồi bấm **▶ Run**.
+3. Lần đầu, trên iPhone vào **Cài đặt → Cài đặt chung → VPN & Quản lý thiết bị** để tin cậy nhà phát triển. Nếu được hỏi thì bật thêm **Chế độ nhà phát triển**.
+
+Với Apple ID miễn phí, app chạy được 7 ngày, sau đó build lại là dùng tiếp. Tài khoản Apple Developer trả phí không bị giới hạn này và gửi được TestFlight.
+
+### Cách 2: build tự động trên GitHub (Actions → "Build iOS (Xcode)" → Run workflow)
+
+Ô **xcode** mặc định là `27.2`; nếu máy build của GitHub chưa có bản này, workflow báo lỗi kèm danh sách các bản có sẵn.
+Kết quả nằm ở mục *Artifacts*:
+- `HNews-simulator.zip`: chạy trên iOS Simulator.
+- `HNews-unsigned.ipa`: cài lên iPhone bằng **Sideloadly** hoặc **AltStore** (các công cụ này ký lại bằng Apple ID của bạn).
+- `HNews.ipa`: bản đã ký, chỉ có khi đặt các Secrets `IOS_P12_BASE64`, `IOS_P12_PASSWORD`, `IOS_PROFILE_BASE64`, `IOS_TEAM_ID`
+  (chứng chỉ *Apple Distribution* .p12 và provisioning profile của app `io.github.hientrannt.hnews`, mã hoá base64).
+
+## Nguồn tin hiện có
+
+| Báo | Cách lấy |
+| --- | --- |
+| VnExpress (Mới nhất, Kinh doanh, Số hoá, Thế giới) | RSS |
+| CafeF (Mới nhất, Chứng khoán, Doanh nghiệp, Tài chính – Ngân hàng, Vĩ mô, Bất động sản) | RSS |
+| Tinh tế | RSS |
+| Báo Mới (Mới nhất, Nổi bật) | Đọc dữ liệu trang (Báo Mới không có RSS); link được đổi thẳng sang bài gốc của báo đăng tin |
+
+Các báo khác (Tuổi Trẻ, Thanh Niên, Dân Trí, Người Lao Động, VTV, VnEconomy, Vietstock, GenK, Kênh 14, Soha, BBC Tiếng Việt…) có trong mục **Gợi ý nhanh** của app.
+
+### Thêm / bớt nguồn
+
+Trong app Android, thêm/xoá nguồn ngay trong app (xem trên). Danh sách nguồn **mặc định** và **gợi ý nhanh** nằm trong
+`docs/sources.json`. Trang web dùng file này, còn app cần build lại thì mới nhận danh sách mặc định mới:
+
+```json
+{ "name": "Tên báo", "category": "Chuyên mục", "url": "https://.../rss" }
+```
+
+- Nguồn RSS: chỉ cần `url` của RSS (thường ở trang `/rss` của báo).
+- Trang Báo Mới: thêm `"type": "baomoi"` và dùng link chuyên mục, ví dụ `https://baomoi.com/kinh-te.epi`.
+- Tắt tạm một nguồn: `"enabled": false`.
+
+## Tóm tắt tin
+
+- Mặc định dùng phần **sapo** (đoạn mô tả) mà báo đưa vào RSS, đã làm sạch và cắt gọn khoảng 300 ký tự.
+- **Tuỳ chọn, tóm tắt bằng AI:** thêm secret `ANTHROPIC_API_KEY` (Settings → Secrets and variables → Actions).
+  Khi đó Claude viết lại mỗi tin thành 1–2 câu nêu ý chính. Tin đã tóm tắt được lưu lại nên mỗi tin chỉ tóm tắt một lần.
+  Đổi model bằng biến môi trường `HNEWS_MODEL`.
+
+## Triển khai lên GitHub Pages (miễn phí, tự cập nhật mỗi 30 phút)
+
+1. Merge nhánh này vào `main`.
+2. Vào **Settings → Pages → Build and deployment → Source** và chọn **GitHub Actions**.
+3. Vào **Actions → "Cập nhật tin & triển khai" → Run workflow** để chạy lần đầu.
+4. Mở `https://<tên-github>.github.io/<tên-repo>/` trên điện thoại, chọn menu **⋮ → Thêm vào màn hình chính**.
+
+Workflow `.github/workflows/update-news.yml` chạy mỗi 30 phút: lấy tin, tóm tắt, rồi đăng lại trang.
+
+## Chạy thử trên máy
+
+```bash
+python3 scripts/build.py          # lấy tin -> docs/data/news.json (chỉ cần Python 3, không cần cài thêm gì)
+cd docs && python3 -m http.server 8000
+# mở http://localhost:8000
+```
+
+## Cấu trúc
+
+```
+docs/sources.json             danh sách nguồn báo
+scripts/build.py              lấy RSS / Báo Mới, làm sạch, tóm tắt -> docs/data/news.json
+docs/                         giao diện dùng chung cho web và app (index.html, style.css, app.js, js/feeds.js)
+android/                      dự án Android (Capacitor)
+ios/                          dự án iOS / Xcode (Capacitor)
+branding/, assets/            logo gốc (SVG) và ảnh icon/màn hình chờ
+dist/                         file APK để cài
+.github/workflows/            cập nhật tin + GitHub Pages, build APK Android, build iOS
+```
+
+## Tác giả
+
+**Trần Ngọc Hiện**
+- ĐT: [079 6868 079](tel:0796868079)
+- Email: [hiendhg@gmail.com](mailto:hiendhg@gmail.com)

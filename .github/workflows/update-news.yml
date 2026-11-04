@@ -1,0 +1,69 @@
+name: Cập nhật tin & triển khai
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # mỗi 30 phút
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["scripts/**", "docs/**", ".github/workflows/update-news.yml"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      pages: ${{ steps.check.outputs.enabled }}
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cài gói anthropic (chỉ khi có API key)
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: pip install anthropic
+      # GitHub Pages chưa bật thì vẫn lấy tin (để kiểm tra), chỉ bỏ qua bước triển khai.
+      - name: Kiểm tra GitHub Pages đã bật chưa
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if curl -fsS -o /dev/null -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+               "https://api.github.com/repos/${{ github.repository }}/pages"; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages chưa bật (Settings → Pages → Source: GitHub Actions) nên bỏ qua bước triển khai trang web."
+          fi
+      - id: pages
+        if: steps.check.outputs.enabled == 'true'
+        uses: actions/configure-pages@v5
+      - name: Lấy tin và tóm tắt
+        env:
+          HNEWS_PREVIOUS_URL: ${{ steps.pages.outputs.base_url && format('{0}/data/news.json', steps.pages.outputs.base_url) || '' }}
+        run: python scripts/build.py
+      - if: steps.check.outputs.enabled == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy:
+    needs: build
+    if: needs.build.outputs.pages == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
